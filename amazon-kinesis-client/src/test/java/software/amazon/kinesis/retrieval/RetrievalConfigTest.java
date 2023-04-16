@@ -1,7 +1,6 @@
 package software.amazon.kinesis.retrieval;
 
 import java.util.Arrays;
-import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -50,7 +49,6 @@ public class RetrievalConfigTest {
         final RetrievalConfig configBySingleTracker = createConfig(singleTracker);
 
         for (final RetrievalConfig rc : Arrays.asList(configByName, configBySingleTracker)) {
-            assertEquals(Optional.empty(), rc.appStreamTracker().left());
             assertEquals(singleTracker, rc.streamTracker());
             assertEquals(1, rc.streamTracker().streamConfigList().size());
             assertFalse(rc.streamTracker().isMultiStream());
@@ -58,8 +56,6 @@ public class RetrievalConfigTest {
 
         final StreamTracker mockMultiStreamTracker = mock(MultiStreamTracker.class);
         final RetrievalConfig configByMultiTracker = createConfig(mockMultiStreamTracker);
-        assertEquals(Optional.empty(), configByMultiTracker.appStreamTracker().right());
-        assertEquals(mockMultiStreamTracker, configByMultiTracker.appStreamTracker().left().get());
         assertEquals(mockMultiStreamTracker, configByMultiTracker.streamTracker());
     }
 
@@ -102,6 +98,7 @@ public class RetrievalConfigTest {
             config.retrievalSpecificConfig(invalidConfig);
             Assert.fail("should throw");
         } catch (RuntimeException re) {
+            // validate the invalid config didn't overwrite the valid one
             assertEquals(validConfig, config.retrievalSpecificConfig());
         }
     }

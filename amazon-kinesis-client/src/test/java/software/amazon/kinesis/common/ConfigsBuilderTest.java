@@ -16,7 +16,6 @@
 package software.amazon.kinesis.common;
 
 import java.util.Arrays;
-import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -59,16 +58,12 @@ public class ConfigsBuilderTest {
         final ConfigsBuilder configBySingleTracker = createConfig(new SingleStreamTracker(streamName));
 
         for (final ConfigsBuilder cb : Arrays.asList(configByName, configBySingleTracker)) {
-            assertEquals(Optional.empty(), cb.appStreamTracker().left());
-            assertEquals(streamName, cb.appStreamTracker().right().get());
             assertEquals(streamName, cb.streamTracker().streamConfigList().get(0).streamIdentifier().streamName());
             assertFalse(cb.streamTracker().isMultiStream());
         }
 
         final StreamTracker mockMultiStreamTracker = mock(MultiStreamTracker.class);
         final ConfigsBuilder configByMultiTracker = createConfig(mockMultiStreamTracker);
-        assertEquals(Optional.empty(), configByMultiTracker.appStreamTracker().right());
-        assertEquals(mockMultiStreamTracker, configByMultiTracker.appStreamTracker().left().get());
         assertEquals(mockMultiStreamTracker, configByMultiTracker.streamTracker());
     }
 

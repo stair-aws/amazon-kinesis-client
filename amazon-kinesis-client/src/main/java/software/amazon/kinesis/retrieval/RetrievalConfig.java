@@ -23,13 +23,9 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 import software.amazon.awssdk.services.kinesis.KinesisAsyncClient;
-import software.amazon.awssdk.utils.Either;
-import software.amazon.kinesis.common.DeprecationUtils;
-import software.amazon.kinesis.common.InitialPositionInStream;
 import software.amazon.kinesis.common.InitialPositionInStreamExtended;
 import software.amazon.kinesis.common.StreamConfig;
 import software.amazon.kinesis.common.StreamIdentifier;
-import software.amazon.kinesis.processor.MultiStreamTracker;
 import software.amazon.kinesis.processor.SingleStreamTracker;
 import software.amazon.kinesis.processor.StreamTracker;
 import software.amazon.kinesis.retrieval.fanout.FanOutConfig;
@@ -67,16 +63,9 @@ public class RetrievalConfig {
     private GlueSchemaRegistryDeserializer glueSchemaRegistryDeserializer = null;
 
     /**
-     * AppStreamTracker either for multi stream tracking or single stream
-     *
-     * @deprecated Both single- and multi-stream support is now provided by {@link StreamTracker}.
-     * @see #streamTracker
-     */
-    private Either<MultiStreamTracker, StreamConfig> appStreamTracker;
-
-    /**
      * Stream(s) to be consumed by this KCL application.
      */
+    @NonNull
     private StreamTracker streamTracker;
 
     /**
@@ -97,22 +86,6 @@ public class RetrievalConfig {
      */
     private int maxListShardsRetryAttempts = 50;
 
-    /**
-     * The location in the shard from which the KinesisClientLibrary will start fetching records from
-     * when the application starts for the first time and there is no checkpoint for the shard.
-     *
-     * <p>
-     * Default value: {@link InitialPositionInStream#LATEST}
-     * </p>
-     *
-     * @deprecated Initial stream position is now handled by {@link StreamTracker}.
-     * @see StreamTracker#orphanedStreamInitialPositionInStream()
-     * @see StreamTracker#createStreamConfig(StreamIdentifier)
-     */
-    @Deprecated
-    private InitialPositionInStreamExtended initialPositionInStreamExtended = InitialPositionInStreamExtended
-            .newInitialPosition(InitialPositionInStream.LATEST);
-
     private RetrievalSpecificConfig retrievalSpecificConfig;
 
     private RetrievalFactory retrievalFactory;
@@ -129,8 +102,6 @@ public class RetrievalConfig {
         this.kinesisClient = kinesisAsyncClient;
         this.streamTracker = streamTracker;
         this.applicationName = applicationName;
-        this.appStreamTracker = DeprecationUtils.convert(streamTracker,
-                singleStreamTracker -> singleStreamTracker.streamConfigList().get(0));
 
         KinesisClientFacade.initialize(kinesisAsyncClient);
     }
@@ -141,21 +112,18 @@ public class RetrievalConfig {
      *
      * @param initialPositionInStreamExtended
      *
-     * @deprecated Initial stream position is now handled by {@link StreamTracker}.
      * @see StreamTracker#orphanedStreamInitialPositionInStream()
      * @see StreamTracker#createStreamConfig(StreamIdentifier)
      */
-    @Deprecated
     public RetrievalConfig initialPositionInStreamExtended(InitialPositionInStreamExtended initialPositionInStreamExtended) {
         if (streamTracker().isMultiStream()) {
             throw new IllegalArgumentException(
                     "Cannot set initialPositionInStreamExtended when multiStreamTracker is set");
-        };
+        }
 
         final StreamIdentifier streamIdentifier = getSingleStreamIdentifier();
         final StreamConfig updatedConfig = new StreamConfig(streamIdentifier, initialPositionInStreamExtended);
         streamTracker = new SingleStreamTracker(streamIdentifier, updatedConfig);
-        appStreamTracker = Either.right(updatedConfig);
         return this;
     }
 
