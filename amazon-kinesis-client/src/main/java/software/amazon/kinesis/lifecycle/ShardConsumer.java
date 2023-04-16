@@ -21,7 +21,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
-import java.util.function.Function;
 
 import org.reactivestreams.Subscription;
 
@@ -37,8 +36,6 @@ import software.amazon.kinesis.exceptions.internal.BlockedOnParentShardException
 import software.amazon.kinesis.leases.ShardInfo;
 import software.amazon.kinesis.lifecycle.events.ProcessRecordsInput;
 import software.amazon.kinesis.lifecycle.events.TaskExecutionListenerInput;
-import software.amazon.kinesis.metrics.MetricsCollectingTaskDecorator;
-import software.amazon.kinesis.metrics.MetricsFactory;
 import software.amazon.kinesis.retrieval.RecordsPublisher;
 
 /**
@@ -59,12 +56,6 @@ public class ShardConsumer {
     private final ShardConsumerArgument shardConsumerArgument;
     @NonNull
     private final Optional<Long> logWarningForTaskAfterMillis;
-
-    /**
-     * @deprecated unused; to be removed in a "major" version bump
-     */
-    @Deprecated
-    private final Function<ConsumerTask, ConsumerTask> taskMetricsDecorator;
 
     private final int bufferSize;
     private final TaskExecutionListener taskExecutionListener;
@@ -100,7 +91,7 @@ public class ShardConsumer {
             TaskExecutionListener taskExecutionListener) {
         this(recordsPublisher, executorService, shardInfo, logWarningForTaskAfterMillis, shardConsumerArgument,
                 ConsumerStates.INITIAL_STATE,
-                ShardConsumer.metricsWrappingFunction(shardConsumerArgument.metricsFactory()), 8, taskExecutionListener,
+                8, taskExecutionListener,
                 LifecycleConfig.DEFAULT_READ_TIMEOUTS_TO_IGNORE);
     }
 
@@ -109,17 +100,17 @@ public class ShardConsumer {
             TaskExecutionListener taskExecutionListener, int readTimeoutsToIgnoreBeforeWarning) {
         this(recordsPublisher, executorService, shardInfo, logWarningForTaskAfterMillis, shardConsumerArgument,
                 ConsumerStates.INITIAL_STATE,
-                ShardConsumer.metricsWrappingFunction(shardConsumerArgument.metricsFactory()), 8, taskExecutionListener,
+                8, taskExecutionListener,
                 readTimeoutsToIgnoreBeforeWarning);
     }
 
     @Deprecated
     public ShardConsumer(RecordsPublisher recordsPublisher, ExecutorService executorService, ShardInfo shardInfo,
             Optional<Long> logWarningForTaskAfterMillis, ShardConsumerArgument shardConsumerArgument,
-            ConsumerState initialState, Function<ConsumerTask, ConsumerTask> taskMetricsDecorator, int bufferSize,
+            ConsumerState initialState, int bufferSize,
             TaskExecutionListener taskExecutionListener) {
         this(recordsPublisher, executorService, shardInfo, logWarningForTaskAfterMillis, shardConsumerArgument,
-                initialState, taskMetricsDecorator, bufferSize, taskExecutionListener,
+                initialState, bufferSize, taskExecutionListener,
                 LifecycleConfig.DEFAULT_READ_TIMEOUTS_TO_IGNORE);
     }
 
@@ -128,7 +119,7 @@ public class ShardConsumer {
     //
     public ShardConsumer(RecordsPublisher recordsPublisher, ExecutorService executorService, ShardInfo shardInfo,
             Optional<Long> logWarningForTaskAfterMillis, ShardConsumerArgument shardConsumerArgument,
-            ConsumerState initialState, Function<ConsumerTask, ConsumerTask> taskMetricsDecorator, int bufferSize,
+            ConsumerState initialState, int bufferSize,
             TaskExecutionListener taskExecutionListener, int readTimeoutsToIgnoreBeforeWarning) {
         this.recordsPublisher = recordsPublisher;
         this.executorService = executorService;
@@ -138,7 +129,6 @@ public class ShardConsumer {
         this.logWarningForTaskAfterMillis = logWarningForTaskAfterMillis;
         this.taskExecutionListener = taskExecutionListener;
         this.currentState = initialState;
-        this.taskMetricsDecorator = taskMetricsDecorator;
         subscriber = new ShardConsumerSubscriber(recordsPublisher, executorService, bufferSize, this,
                 readTimeoutsToIgnoreBeforeWarning);
         this.bufferSize = bufferSize;
@@ -456,23 +446,6 @@ public class ShardConsumer {
         synchronized (shutdownLock) {
             return shutdownReason != null;
         }
-    }
-
-    /**
-     * Default task wrapping function for metrics
-     *
-     * @param metricsFactory
-     *            the factory used for reporting metrics
-     * @return a function that will wrap the task with a metrics reporter
-     */
-    private static Function<ConsumerTask, ConsumerTask> metricsWrappingFunction(MetricsFactory metricsFactory) {
-        return (task) -> {
-            if (task == null) {
-                return null;
-            } else {
-                return new MetricsCollectingTaskDecorator(task, metricsFactory);
-            }
-        };
     }
 
 }

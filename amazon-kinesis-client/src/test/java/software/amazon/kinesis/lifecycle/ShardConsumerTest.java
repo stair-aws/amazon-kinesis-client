@@ -53,7 +53,6 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 
 import org.junit.After;
 import org.junit.Before;
@@ -710,7 +709,7 @@ public class ShardConsumerTest {
         TestPublisher cache = new TestPublisher();
 
         ShardConsumer consumer = new ShardConsumer(cache, executorService, shardInfo, Optional.of(1L),
-                shardConsumerArgument, initialState, Function.identity(), 1, taskExecutionListener, 0);
+                shardConsumerArgument, initialState, 1, taskExecutionListener, 0);
 
         mockSuccessfulInitialize(null);
         mockSuccessfulProcessing(null);
@@ -756,7 +755,7 @@ public class ShardConsumerTest {
         TestPublisher cache = new TestPublisher();
 
         ShardConsumer consumer = new ShardConsumer(cache, executorService, shardInfo, Optional.of(1L),
-                shardConsumerArgument, initialState, Function.identity(), 1, taskExecutionListener, 0);
+                shardConsumerArgument, initialState, 1, taskExecutionListener, 0);
 
         CyclicBarrier taskArriveBarrier = new CyclicBarrier(2);
         CyclicBarrier taskDepartBarrier = new CyclicBarrier(2);
@@ -954,7 +953,7 @@ public class ShardConsumerTest {
     private ShardConsumer createShardConsumer(final RecordsPublisher publisher,
             final ExecutorService executorService, final ConsumerState state) {
         return new ShardConsumer(publisher, executorService, shardInfo, logWarningForTaskAfterMillis,
-                shardConsumerArgument, state, Function.identity(), 1, taskExecutionListener, 0);
+                shardConsumerArgument, state, 1, taskExecutionListener, 0);
     }
 
 }
