@@ -21,7 +21,6 @@ import com.amazonaws.auth.AWSSessionCredentialsProvider;
 import com.amazonaws.auth.STSAssumeRoleSessionCredentialsProvider;
 import com.amazonaws.auth.STSAssumeRoleSessionCredentialsProvider.Builder;
 import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
-import com.amazonaws.regions.Regions;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient;
 
@@ -75,7 +74,7 @@ public class KclSTSAssumeRoleSessionCredentialsProvider
         final AWSSecurityTokenService stsClient =
                 AWSSecurityTokenServiceClient.builder()
                         .withEndpointConfiguration(endpoint)
-                        .withRegion(Regions.fromName(signingRegion))
+//                        .withRegion(Regions.fromName(signingRegion))
                         .build();
         builder.withStsClient(stsClient);
     }
