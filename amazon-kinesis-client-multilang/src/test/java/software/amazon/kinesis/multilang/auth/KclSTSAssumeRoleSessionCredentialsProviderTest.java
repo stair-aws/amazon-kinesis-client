@@ -22,6 +22,15 @@ import org.junit.Test;
 
 public class KclSTSAssumeRoleSessionCredentialsProviderTest {
 
+    /**
+     * Test that the constructor doesn't throw an out-of-bounds exception if
+     * there are no parameters beyond the required ARN and session name.
+     */
+    @Test
+    public void testConstructorWithoutOptionalParams() {
+        new KclSTSAssumeRoleSessionCredentialsProvider(new String[] { "arn", "sessionName" });
+    }
+
     @Test
     public void testVarArgs() {
         for (final String[] varargs : Arrays.asList(

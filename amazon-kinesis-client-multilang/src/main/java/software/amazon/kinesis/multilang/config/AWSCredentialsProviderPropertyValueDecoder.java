@@ -84,8 +84,11 @@ class AWSCredentialsProviderPropertyValueDecoder implements IPropertyValueDecode
                 }
                 clazz = (Class<? extends AWSCredentialsProvider>) c;
             } catch (ClassNotFoundException cnfe) {
+                // Providers are a list of "hopefuls" (see #getPossibleFullClassNames(String))).
+                // It's expected that many class names will not resolve.
                 continue;
             }
+            log.info("Attempting to construct {}", clazz);
 
             AWSCredentialsProvider provider = null;
             if (nameAndArgs.length > 1) {
@@ -97,8 +100,10 @@ class AWSCredentialsProviderPropertyValueDecoder implements IPropertyValueDecode
                     Arrays.fill(argTypes, String.class);
                     Constructor<? extends AWSCredentialsProvider> c = clazz.getConstructor(argTypes);
                     provider = c.newInstance(varargs);
+                } catch (NoSuchMethodException nsme) {
+                    // ignore
                 } catch (Exception e) {
-                    log.debug("Can't find any credentials provider matching {}.", providerName);
+                    log.warn("Can't find any credentials provider matching {}.", providerName, e);
                 }
 
                 if (provider == null) {
@@ -106,8 +111,10 @@ class AWSCredentialsProviderPropertyValueDecoder implements IPropertyValueDecode
                     try {
                         Constructor<? extends AWSCredentialsProvider> c = clazz.getConstructor(String[].class);
                         provider = c.newInstance((Object) varargs);
+                    } catch (NoSuchMethodException nsme) {
+                        // ignore
                     } catch (Exception e) {
-                        log.debug("Can't find any credentials provider matching {}.", providerName);
+                        log.warn("Can't find any credentials provider matching {}.", providerName, e);
                     }
                 }
             }
@@ -117,7 +124,7 @@ class AWSCredentialsProviderPropertyValueDecoder implements IPropertyValueDecode
                 try {
                     provider = clazz.newInstance();
                 } catch (Exception e) {
-                    log.debug("Can't find any credentials provider matching {}.", providerName);
+                    log.warn("Can't find any credentials provider matching {}.", providerName, e);
                 }
             }
 
