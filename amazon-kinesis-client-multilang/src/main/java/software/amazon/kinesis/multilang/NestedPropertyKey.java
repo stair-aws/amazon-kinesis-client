@@ -106,7 +106,7 @@ public enum NestedPropertyKey {
 
         for (final String param : params) {
             if (param != null) {
-                final String[] tokens = param.split("=");
+                final String[] tokens = param.split("XXX");
                 if (tokens.length == 2) {
                     final NestedPropertyKey npk = cachedKeys.get(tokens[0]);
                     if (npk != null) {
