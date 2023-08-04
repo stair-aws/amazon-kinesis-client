@@ -25,8 +25,8 @@ public class KclSTSAssumeRoleSessionCredentialsProviderTest {
     @Test
     public void testVarArgs() {
         for (final String[] varargs : Arrays.asList(
-                new String[] { "arn", "session", "externalId=eid", "foo"},
-                new String[] { "arn", "session", "foo", "externalId=eid"}
+                new String[] { "arn", "session", "externalIdXXXeid", "foo"},
+                new String[] { "arn", "session", "foo", "externalIdXXXeid"}
         )) {
             final VarArgsSpy provider = new VarArgsSpy(varargs);
             assertEquals("eid", provider.externalId);

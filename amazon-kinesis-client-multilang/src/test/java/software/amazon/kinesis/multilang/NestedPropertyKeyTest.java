@@ -77,14 +77,14 @@ public class NestedPropertyKeyTest {
                 "",
                 "hello world", // no nested key
                 "foo=bar", // nested key, but is not a recognized key
-                createKey(EXTERNAL_ID, "eid") + "=extra", // valid key made invalid by second '='
+                createKey(EXTERNAL_ID, "eid") + "XXXextra", // valid key made invalid by second '='
         };
         parse(mockProcessor, params);
         verifyZeroInteractions(mockProcessor);
     }
 
     private static String createKey(final NestedPropertyKey key, final String value) {
-        return key.getNestedKey() + "=" + value;
+        return key.getNestedKey() + "XXX" + value;
     }
 
 }
